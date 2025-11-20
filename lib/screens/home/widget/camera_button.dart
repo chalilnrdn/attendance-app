@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class CameraButton extends StatelessWidget {
@@ -34,15 +36,40 @@ class CameraButton extends StatelessWidget {
           );
         }
         return;
-        
       }
+
+      final ImagePicker picker = ImagePicker();
+      // Xfile untuk menghubungkan file dari aplikasi 
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        preferredCameraDevice: CameraDevice.rear,
+        imageQuality: 70, //compressed image
+        );
+
+    if (photo != null) {
+      onImageCaptured(photo.path);
+    }
+
     } catch (e) {
-      
+      if (context.mounted) {
+        ScaffoldMessenger.of( context).showSnackBar(
+          SnackBar(content: Text("Error taking photo: ${e.toString()}"), 
+          backgroundColor: Colors.red
+          )
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return ElevatedButton.icon(
+      onPressed: () => _takePhoto(context),
+      icon: Icon(Icons.camera_alt_outlined),
+      label: Text(buttonText),
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),     
+         ),
+      );
   }
 }
