@@ -9,7 +9,7 @@ class AttendanceRecord {
   final String? checkInPhotoPath;
   final String? checkOutPhotoPath;
 
-  AttendanceRecord({required this.id, required this.userId, required this.checkOutTime, required this.checkInTime, required this.date, this.location, this.notes, this.checkInPhotoPath, this.checkOutPhotoPath});
+  AttendanceRecord({required this.id, required this.userId, this.checkOutTime, required this.checkInTime, required this.date, this.location, this.notes, this.checkInPhotoPath, this.checkOutPhotoPath});
 
   factory AttendanceRecord.fromJson(Map<String, dynamic> json){
     return AttendanceRecord(
