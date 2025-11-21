@@ -26,7 +26,7 @@ class ActionButton extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: hasCheckedIn ? _buildCheckedOutButtons() : _buildCheckInButtons(),
+      children: hasCheckedIn ? _buildCheckOutButtons() : _buildCheckInButtons(),
     );
   }
 
@@ -64,14 +64,48 @@ class ActionButton extends StatelessWidget {
   }
   
   List<Widget> _buildCheckInButtons() {
+    return [
+      _ActionButton(
+        label: 'Check In without Photo',
+        icon: Icons.login_rounded,
+        color: Colors.blue[600]!,
+        onPressed: isLoading ? null : onCheckIn,
+        isLoading: isLoading,
+      ),
+      SizedBox(height: 12),
+      _PhotoButton(
+        label: 'Check In with Photo',
+        color: Colors.blue[600]!,
+        onImageCaptured: onCheckInWithPhoto,
+        isLoading: isLoading,
+      )
+    ];
+  }
 
+  List<Widget> _buildCheckOutButtons() {
+    return [
+      _ActionButton(
+        label: 'Check Out without Photo',
+        icon: Icons.logout_rounded,
+        color: Colors.red[600]!,
+        onPressed: isLoading ? null : onCheckOut,
+        isLoading: isLoading,
+      ),
+      SizedBox(height: 12),
+      _PhotoButton(
+        label: 'Check Out with Photo',
+        color: Colors.red[600]!,
+        onImageCaptured: onCheckOutWithPhoto,
+        isLoading: isLoading,
+      )
+    ];
   }
 }
 
 class _ActionButton extends StatelessWidget {
   final String label;
   final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color color;
   final bool isLoading;
 
