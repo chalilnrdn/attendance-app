@@ -1,4 +1,5 @@
 import 'package:attendance_app/models/attendance_record.dart';
+import 'package:attendance_app/screens/history/history_screen.dart';
 import 'package:attendance_app/screens/home/widget/action_button.dart';
 import 'package:attendance_app/screens/home/widget/attendance_card.dart';
 import 'package:attendance_app/screens/home/widget/profile_card.dart';
@@ -19,8 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   final StorageServices _storageServices = StorageServices();
   AttendanceRecord? _todayRecord;
-  bool _isLoading= false;
-
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -28,30 +28,27 @@ class _HomeScreenState extends State<HomeScreen> {
     _listenToTodayRecord();
   }
 
-  // mendengarkan semua hal yg terjadi di homescreen ->attendance record
   void _listenToTodayRecord() {
     final user = _authServices.currentUser;
     if (user != null) {
       _firestoreService.getTodayRecordStream(user.uid).listen((record) {
-        // masih aktif 
         if (mounted) setState(() => _todayRecord = record);
       });
     }
   }
 
-  // utk check in
-  Future<void> _CheckIn({String? photoPath}) async {
+  Future<void> _checkIn({String? photoPath}) async {
     final user = _authServices.currentUser;
-    // kalo user tidak ada di database
-    if (user == null) return null;
+    if (user == null) return;
 
     setState(() => _isLoading = true);
-
-    // percobaan utk take photo ketika check in
     try {
       String? photoKey;
       if (photoPath != null) {
-        photoKey = await _storageServices.uploadAttendancePhoto(photoPath, 'CheckIn');
+        photoKey = await _storageServices.uploadAttendancePhoto(
+          photoPath,
+          'checkin',
+        );
       }
 
       final now = DateTime.now();
@@ -69,21 +66,21 @@ class _HomeScreenState extends State<HomeScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              photoPath != null ? 'Check in successfully with photo!' : 'Check in successfully',
+              photoPath != null
+                  ? 'Check in successfully with photo!'
+                  : 'Check in successfully',
             ),
+
             backgroundColor: Colors.green,
             duration: Duration(seconds: 2),
-          )
+          ),
         );
       }
     } catch (e) {
-      // kalau tidak berhasil check in
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error checkhing in: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          )
+          SnackBar(content: Text('Error checking in: ${e.toString()}'),
+          backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -91,16 +88,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // check out
-  Future<void> _checkOut({String? photoPath}) async {
+  Future <void> _checkOut({String? photoPath}) async {
     if (_todayRecord == null) return;
 
     setState(() => _isLoading = true);
-
     try {
       String? photoKey;
       if (photoPath != null) {
-        photoKey = await _storageServices.uploadAttendancePhoto(photoPath, 'checkout');}
+        photoKey =  await _storageServices.uploadAttendancePhoto(
+          photoPath, 'checkout'
+        );   }
 
         final updateRecord = AttendanceRecord(
           id: _todayRecord!.id,
@@ -109,35 +106,34 @@ class _HomeScreenState extends State<HomeScreen> {
           checkOutTime: DateTime.now(),
           date: _todayRecord!.date,
           checkInPhotoPath: _todayRecord!.checkInPhotoPath,
-          checkOutPhotoPath: photoKey,
+          checkOutPhotoPath: photoKey
+
         );
 
         await _firestoreService.updateAttendanceRecord(updateRecord);
-
-        // ketika proses check out success sampai snackbar nya
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(photoPath != null ? 'Checked Out successfully with photo' : 'Check Out succesfully'),
+              content: Text(photoPath != null ? 'Checked out successfully with photo!' : 'Checked out successfully'),
               backgroundColor: Colors.green,
               duration: Duration(seconds: 2),
             )
           );
         }
-     
+    
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error checking out: ${e.toString()}'
-            ),
-            backgroundColor: Colors.red,
+          SnackBar(content: Text(
+            'Failed to checkout: ${e.toString()}'
+          ),
+          backgroundColor: Colors.red,
           )
         );
       }
     } finally {
-      if (mounted) setState(() => _isLoading = true);
+      if (mounted) setState(() => _isLoading = false); 
+      
     }
   }
 
@@ -153,13 +149,13 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.history),
-            onPressed: () {
-              //TODO : Navigate to attendance history screen
-            },
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => HistoryScreen())
+            ),
           ),
           IconButton(
             icon: Icon(Icons.logout),
-            onPressed: () async => await _authServices.signOut(),
+            onPressed: () async => await _authServices.signOut() ,
           )
         ],
       ),
@@ -172,28 +168,28 @@ class _HomeScreenState extends State<HomeScreen> {
               Colors.blue[700]!,
               Colors.grey[50]!,
             ],
-            stops: [0, 0, 0.3]
-            )
+            stops: [0.0, 0.3]
+          )
         ),
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ProfileCard(),
               SizedBox(height: 24),
-              AttendanceCard(todayRecord: _todayRecord,),
+              AttendanceCard(todayRecord: _todayRecord),
               SizedBox(height: 24),
-              ActionButton(
-                todayRecord: _todayRecord,
-                isLoading: _isLoading,
-                onCheckIn: () => _CheckIn(),
-                onCheckOut: () => _checkOut(),
-                onCheckInWithPhoto: (path) => _CheckIn(photoPath: path),
-                onCheckOutWithPhoto: (path) => _checkOut(photoPath: path),
-              )
+                ActionButton(
+                  todayRecord: _todayRecord,
+                  isLoading: _isLoading,
+                  onCheckIn: () => _checkIn(),
+                  onCheckOut: () => _checkOut(),
+                  onCheckInWithPhoto: (path) => _checkIn(photoPath: path),
+                  onCheckOutWithPhoto: (path) => _checkOut(photoPath: path),
+                )
             ],
-          )
+          ),
         ),
       ),
     );

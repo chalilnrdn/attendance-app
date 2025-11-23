@@ -66,7 +66,7 @@ class StorageServices {
           .child('attendance_photos')
           .child(user.uid)
           .child(photoKey)
-          .child('data')
+          .child('photo_data')
           .get();
 
       if (snapshot.exists) {

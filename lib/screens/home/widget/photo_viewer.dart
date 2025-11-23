@@ -11,7 +11,6 @@ class PhotoViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // || => or ( apa gitu namanya lupa )
     if (photoKey == null || photoKey!.isEmpty) {
       return Container(
         height: 120,
@@ -35,23 +34,26 @@ class PhotoViewer extends StatelessWidget {
       );
     }
 
+    // ini buat penyimpanan datanya
     final storageService = StorageServices();
 
     return FutureBuilder<String?>(
       future: storageService.getPhotoBase64(photoKey!),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        // kondisi 1 = kalo sanpshot masih nunggu
+        if (snapshot.connectionState == ConnectionState.waiting) { 
           return Container(
             height: 120,
             decoration: BoxDecoration(
               color: Colors.grey[200],
               borderRadius: BorderRadius.circular(8)
             ),
-            child: CircularProgressIndicator(),
+            child: Center(child: CircularProgressIndicator()),
           );
         }
 
-        if (snapshot.hasError || snapshot.hasData || snapshot.data == null) {
+        // kondisi 2 = kalo datanya gaada
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
           return Container(
             height: 120,
             decoration: BoxDecoration(
@@ -62,7 +64,7 @@ class PhotoViewer extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, color: Colors.red[400], size: 40,),
+                  Icon(Icons.error_outline, color: Colors.red[400], size: 40),
                   SizedBox(height: 8),
                   Text(
                     'Failed to load photo',
@@ -74,6 +76,7 @@ class PhotoViewer extends StatelessWidget {
           );
         }
 
+        // biar fotonya full di container
         try {
           final Uint8List bytes = base64Decode(snapshot.data!);
 
@@ -85,8 +88,8 @@ class PhotoViewer extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 image: DecorationImage(
                   image: MemoryImage(bytes),
-                  fit: BoxFit.cover,
-                ),
+                  fit: BoxFit.cover
+                  )
               ),
               child: Align(
                 alignment: Alignment.bottomCenter,
@@ -96,23 +99,23 @@ class PhotoViewer extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.black54,
                     borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(8),
-                    bottomRight: Radius.circular(8)
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8)
+                    )
                   ),
-                ),
-                child: Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold
+                    ),
                   ),
                 ),
               ),
             ),
-          )
           );
-
         } catch (e) {
           return Container(
             height: 120,
@@ -122,20 +125,19 @@ class PhotoViewer extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                'Invalid image data',
-                style: TextStyle(color: Colors.grey[600]),
+                'Invalid invite data',
+                style:  TextStyle(color: Colors.grey[600]),
               ),
             ),
           );
         }
-        
       },
     );
   }
 
-  void _showFullImage(BuildContext context, Uint8List bytes, String title){
+  void _showFullImage(BuildContext context, Uint8List bytes, String title) {
     showDialog(
-      context: context, 
+      context: context,
       builder: (context) => Dialog(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -145,14 +147,17 @@ class PhotoViewer extends StatelessWidget {
               automaticallyImplyLeading: false,
               actions: [
                 IconButton(
-                  icon: Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
+                 icon:Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
                 )
-                ],
+              ],
+            ),
+            InteractiveViewer(
+              child: Image.memory(bytes),
             )
           ],
         ),
-      )
-      );
+      ),
+    );
   }
 }
